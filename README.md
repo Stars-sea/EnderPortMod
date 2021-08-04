@@ -1,6 +1,9 @@
-# ![Icon](src/main/resources/enderport.png) 末影传送 / Ender Port Mod
-一个使传送 "更加科学" 的 Minecraft Mod  
-A mod that makes teleporting in Minecraft "more scientific"
+<div align="center">
+    <img src="https://raw.fastgit.org/Stars-sea/Enderport/main/src/main/resources/enderport.png" height="128" align="center"/>
+    <h1 align="center">末影传送 / Enderport Mod</h1>
+    <p align="center">一个使传送 "更加科学" 的 Minecraft Mod</p>
+    <p align="center">A mod that makes teleporting in Minecraft "more scientific"</p>
+</div>
 
 
 ### 依赖 / Dependence
