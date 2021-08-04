@@ -1,0 +1,8 @@
+{
+  "item.enderport.ender_scroll": "Ender Scroll",
+  "item.enderport.ender_pearl_fragment": "Ender Pearl Fragment",
+
+  "tooltip.enderport.ender_scroll.blank": "Blank",
+  "tip.enderport.tp_fail": "Failed to teleport to %s",
+  "tip.enderport.tp_succeed": "Teleport to %s successfully"
+}

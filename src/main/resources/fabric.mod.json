@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "enderport",
+  "version": "${version}",
+
+  "name": "Ender Port",
+  "description": "A mod that makes teleporting in Minecraft \"more scientific.\"",
+  "authors": [
+    "Stars_sea"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Stars-sea",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+
+  "license": "MIT",
+  "icon": "enderport.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.github.stars_sea.enderport.EnderPortMod"
+    ],
+    "client": [
+      "com.github.stars_sea.enderport.client.EnderPortClientMod"
+    ]
+  },
+  "mixins": [
+    "enderport.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.11.3",
+    "fabric": "*",
+    "minecraft": "1.17.x",
+    "java": ">=16"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

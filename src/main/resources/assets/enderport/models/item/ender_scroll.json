@@ -1,0 +1,36 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "enderport:item/ender_scroll_blank"
+  },
+
+  "overrides": [
+    {
+      "predicate": {
+        "recorded": 0,
+        "progress": 0.01
+      },
+      "model": "enderport:item/ender_scroll_writing_0"
+    },
+    {
+      "predicate": {
+        "recorded": 0,
+        "progress": 0.58
+      },
+      "model": "enderport:item/ender_scroll_writing_1"
+    },
+    {
+      "predicate": {
+        "recorded": 0,
+        "progress": 1
+      },
+      "model": "enderport:item/ender_scroll_writing_2"
+    },
+    {
+      "predicate": {
+        "recorded": 1
+      },
+      "model": "enderport:item/ender_scroll_recorded"
+    }
+  ]
+}

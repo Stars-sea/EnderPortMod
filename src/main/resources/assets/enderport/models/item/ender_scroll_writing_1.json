@@ -1,0 +1,6 @@
+{
+  "parent": "enderport:item/ender_scroll",
+  "textures": {
+    "layer0": "enderport:item/ender_scroll_writing_1"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "item.enderport.ender_scroll": "末影卷轴",
+  "item.enderport.ender_pearl_fragment": "末影珍珠碎片",
+
+  "tooltip.enderport.ender_scroll.blank": "空白",
+  "tip.enderport.tp_fail": "传送至 %s 失败",
+  "tip.enderport.tp_succeed": "传送至 %s 成功"
+}
