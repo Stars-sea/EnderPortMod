@@ -1,7 +1,7 @@
 package com.github.stars_sea.enderport.item;
 
-import com.github.stars_sea.enderport.Location;
 import com.github.stars_sea.enderport.util.EffectHelper;
+import com.github.stars_sea.enderport.world.Location;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -14,7 +14,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.Style;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
@@ -56,8 +56,8 @@ public class EnderScroll extends Item {
         ItemStack stack    = user.getStackInHand(hand);
         Location  location = getData(stack);
         if (location != null) {
-            Vec3d effectPos = location.pos().add(0, 1, 0);
-            BlockPos blockPos = new BlockPos(effectPos);
+            Vec3d    effectPos = location.pos().add(0, 1, 0);
+            BlockPos blockPos  = new BlockPos(effectPos);
             if (!world.isAir(blockPos))
                 effectPos = location.pos();
             if (world.isAir(blockPos)) {
@@ -95,13 +95,12 @@ public class EnderScroll extends Item {
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         Location location = getData(stack);
         if (location != null) {
-            LiteralText worldText = new LiteralText(location.getWorldName());
-            if (world == null || !world.getRegistryKey().getValue().equals(location.world().getValue()))
-                worldText.setStyle(Style.EMPTY.withColor(Formatting.YELLOW));
-            else worldText.setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(true));
+            LiteralText worldText = new LiteralText(location.getDimensionName());
+            if (world == null || !world.getRegistryKey().getValue().equals(location.dimension().getValue()))
+                worldText.formatted(Formatting.YELLOW);
+            else worldText.formatted(Formatting.RED).formatted(Formatting.ITALIC);
 
-            LiteralText posText = new LiteralText(location.toString(false));
-            posText.setStyle(Style.EMPTY.withColor(Formatting.GREEN));
+            MutableText posText = new LiteralText(location.toString(false)).formatted(Formatting.RED);
 
             tooltip.add(worldText);
             tooltip.add(posText);
@@ -145,8 +144,7 @@ public class EnderScroll extends Item {
     }
 
     private void teleportSucceed(@NotNull PlayerEntity player, @NotNull World world, @NotNull Location location) {
-        Text text = new TranslatableText("tip.enderport.tp_succeed", location)
-                .setStyle(Style.EMPTY.withColor(Formatting.GREEN));
+        Text text = new TranslatableText("tip.enderport.tp_succeed", location).formatted(Formatting.GREEN);
         player.sendMessage(text, true);
         player.getItemCooldownManager().set(this, 30);
         player.incrementStat(Stats.USED.getOrCreateStat(this));
@@ -157,8 +155,7 @@ public class EnderScroll extends Item {
     }
 
     private void teleportFail(@NotNull PlayerEntity player, Location location) {
-        Text text = new TranslatableText("tip.enderport.tp_fail", location)
-                .setStyle(Style.EMPTY.withColor(Formatting.RED));
+        Text text = new TranslatableText("tip.enderport.tp_fail", location).formatted(Formatting.RED);
         player.sendSystemMessage(text, Util.NIL_UUID);
     }
 }

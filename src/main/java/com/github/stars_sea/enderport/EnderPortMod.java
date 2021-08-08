@@ -1,14 +1,25 @@
 package com.github.stars_sea.enderport;
 
+import com.github.stars_sea.enderport.event.listener.BlockEntityEventsHandler;
+import com.github.stars_sea.enderport.event.listener.LootTableLoadingHandler;
 import com.github.stars_sea.enderport.item.EnderPortItems;
-import com.github.stars_sea.enderport.loot.EndermanLootTable;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.loot.v1.event.LootTableLoadingCallback;
+import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 public class EnderPortMod implements ModInitializer {
+	public static final String ID = "enderport";
+
 	@Override
 	public void onInitialize() {
-		LootTableLoadingCallback.EVENT.register(new EndermanLootTable());
 		EnderPortItems.registerAll();
+		LootTableLoadingHandler.register();
+		BlockEntityEventsHandler.register();
+	}
+
+	@NotNull @Contract("_ -> new")
+	public static Identifier genId(String path) {
+		return new Identifier(ID, path);
 	}
 }

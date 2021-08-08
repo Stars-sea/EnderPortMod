@@ -4,6 +4,7 @@
   "package": "com.github.stars_sea.enderport.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "accessor.BeaconBlockEntityAccessor"
   ],
   "client": [
   ],

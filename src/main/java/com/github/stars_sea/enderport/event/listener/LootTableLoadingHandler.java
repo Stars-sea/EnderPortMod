@@ -1,4 +1,4 @@
-package com.github.stars_sea.enderport.loot;
+package com.github.stars_sea.enderport.event.listener;
 
 import com.github.stars_sea.enderport.item.EnderPortItems;
 import net.fabricmc.fabric.api.loot.v1.FabricLootPoolBuilder;
@@ -11,7 +11,7 @@ import net.minecraft.loot.provider.number.UniformLootNumberProvider;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
-public class EndermanLootTable implements LootTableLoadingCallback {
+public class LootTableLoadingHandler implements LootTableLoadingCallback {
     private static final Identifier EndermanLootTableID = EntityType.ENDERMAN.getLootTableId();
 
     @Override
@@ -22,5 +22,9 @@ public class EndermanLootTable implements LootTableLoadingCallback {
                     .with(ItemEntry.builder(EnderPortItems.ENDER_PEARL_FRAGMENT));
             supplier.pool(builder);
         }
+    }
+
+    public static void register() {
+        LootTableLoadingCallback.EVENT.register(new LootTableLoadingHandler());
     }
 }

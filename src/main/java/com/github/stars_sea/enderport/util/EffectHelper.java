@@ -1,11 +1,10 @@
 package com.github.stars_sea.enderport.util;
 
-import com.github.stars_sea.enderport.Location;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.thrown.EnderPearlEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -43,9 +42,17 @@ public final class EffectHelper {
         return addEnderPearl(world, user, pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public static void playTpSound(@NotNull World world, BlockPos pos) {
-        world.playSound(null, pos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.NEUTRAL,
+    public static void playSound(@NotNull World world, BlockPos pos, SoundEvent sound) {
+        world.playSound(null, pos, sound, SoundCategory.NEUTRAL,
                 0.5F, 0.4F / (world.getRandom().nextFloat() * 0.4F + 0.8F));
+    }
+
+    public static void playTpSound(@NotNull World world, BlockPos pos) {
+        playSound(world, pos, SoundEvents.ENTITY_ENDERMAN_TELEPORT);
+    }
+
+    public static void playBrokenSound(@NotNull World world, BlockPos pos) {
+        playSound(world, pos, SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK);
     }
 
     public static void killEffectEnderPearl(@NotNull World world, @NotNull BlockPos pos) {
