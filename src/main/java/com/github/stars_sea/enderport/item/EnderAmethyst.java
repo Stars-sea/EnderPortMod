@@ -25,7 +25,7 @@ public class EnderAmethyst extends Item {
     public final int searchDistance;
 
     public EnderAmethyst(int searchDistance) {
-        super(new Settings().maxCount(1).group(ItemGroup.TRANSPORTATION));
+        super(new Settings().maxCount(16).group(ItemGroup.TRANSPORTATION));
         this.searchDistance = searchDistance;
     }
 
@@ -36,6 +36,9 @@ public class EnderAmethyst extends Item {
     @Override
     public TypedActionResult<ItemStack> use(@NotNull World world, @NotNull PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
+        stack.decrement(1);
+        EffectHelper.playBrokenSound(world, user.getBlockPos());
+        EffectHelper.addTpParticles(world, user.getPos());
 
         if (world instanceof ServerWorld serverWorld) {
             user.getItemCooldownManager().set(this, 200);
@@ -58,14 +61,17 @@ public class EnderAmethyst extends Item {
 //            ));
             LandmarkPOIType.getNearestLandmark(serverWorld, user.getBlockPos(), searchDistance).ifPresentOrElse(
                     landmark -> {
-                        prepareToTeleport(new Location(world, landmark).add(0, 1, 0), user);
+                        prepareToTeleport(new Location(world, landmark), user);
                         user.setGlowing(true);
-                        stack.decrement(1);
-                        EffectHelper.playBrokenSound(world, user.getBlockPos());
                     },
                     () -> {
                         MutableText text = new TranslatableText("tip.enderport.not_fount_landmark", searchDistance);
                         user.sendSystemMessage(text.formatted(Formatting.RED), Util.NIL_UUID);
+
+                        // If not found landmark, give a new amethyst back to the player.
+                        if (user.getInventory().getEmptySlot() != 0)
+                            user.giveItemStack(new ItemStack(this));
+                        else user.dropItem(new ItemStack(this), true);
                     }
             );
         }
@@ -73,16 +79,15 @@ public class EnderAmethyst extends Item {
     }
 
     public static void prepareToTeleport(@NotNull Location location, @NotNull PlayerEntity user) {
-        double distance  = Vec3d.of(user.getBlockPos()).distanceTo(location.pos());
-        MutableText text = new TranslatableText("tip.enderport.found_landmark", Math.round(distance));
+        double      distance  = Vec3d.of(user.getBlockPos()).distanceTo(location.pos());
+        MutableText text      = new TranslatableText("tip.enderport.found_landmark", Math.round(distance));
         user.sendMessage(text.formatted(Formatting.GREEN), true);
 
         new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 user.setGlowing(false);
-                location.teleport(user);
+                location.teleportToNearby(4, user);
             }
-        }, 3000);
+        }, (long) (Math.ceil(distance / 100) * 1000)); // Add 1 sec for every 100 blocks.
     }
 }

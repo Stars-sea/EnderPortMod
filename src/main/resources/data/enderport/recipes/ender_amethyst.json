@@ -1,7 +1,7 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:ender_pearl" },
+    { "item": "enderport:ender_pearl_fragment" },
     { "item": "minecraft:amethyst_shard" }
   ],
   "result": {

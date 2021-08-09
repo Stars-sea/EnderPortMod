@@ -21,15 +21,21 @@ public final class PosHelper {
         return new Vec3d(x, y, z);
     }
 
-    @NotNull
-    public static Vec3d getRandomSafePos(@NotNull World world, @NotNull Vec3d pos) {
-        Vec3d curr = getRandomPos(pos);
-        BlockPos.Mutable mutable = new BlockPos.Mutable(Math.round(curr.x), curr.y, Math.round(curr.z));
+    public static BlockPos.Mutable getSafeMutable(@NotNull World world, @NotNull BlockPos.Mutable mutable) {
         while(mutable.getY() > world.getBottomY() && !world.getBlockState(mutable).getMaterial().blocksMovement() &&
                 world.isAir(mutable.add(0, 1, 0))) {
             mutable.move(Direction.DOWN);
         }
-        return new Vec3d(mutable.getX() + 0.5, mutable.getY() + 1, mutable.getZ() + 0.5);
+        return mutable.move(Direction.UP);
+    }
+
+    @NotNull
+    public static Vec3d getRandomSafePos(@NotNull World world, @NotNull Vec3d pos) {
+        Vec3d curr = getRandomPos(pos);
+        BlockPos.Mutable mutable = getSafeMutable(
+                world, new BlockPos.Mutable(Math.round(curr.x), curr.y, Math.round(curr.z))
+        );
+        return new Vec3d(mutable.getX() + 0.5, mutable.getY(), mutable.getZ() + 0.5);
     }
 
     @NotNull

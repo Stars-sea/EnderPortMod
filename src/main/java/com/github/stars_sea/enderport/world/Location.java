@@ -16,6 +16,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Random;
+
 public final record Location(RegistryKey<World> dimension, Vec3d pos) {
 
     public Location(@NotNull World world, BlockPos pos) {
@@ -105,6 +107,23 @@ public final record Location(RegistryKey<World> dimension, Vec3d pos) {
         if (player instanceof ServerPlayerEntity serverPlayer)
             serverPlayer.teleport(world, getX(), getY(), getZ(), player.headYaw, player.prevPitch);
         return true;
+    }
+
+    public boolean teleportToNearby(int offset, @NotNull PlayerEntity player) {
+        Random random = player.getRandom();
+        double x = random.nextInt(offset);
+        double y = random.nextInt(offset);
+        double z = random.nextInt(offset);
+
+        World world = player.getEntityWorld();
+        BlockPos.Mutable mutable = PosHelper.getSafeMutable(
+                world, new BlockPos.Mutable(
+                        getX() + (random.nextBoolean() ? x : -x),
+                        getY() + y,
+                        getZ() + (random.nextBoolean() ? z : -z)
+                )
+        );
+        return new Location(world, mutable.toImmutable()).teleport(player);
     }
 
     public Location add(double x, double y, double z) {

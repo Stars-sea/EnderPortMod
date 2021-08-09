@@ -2,7 +2,11 @@ package com.github.stars_sea.enderport.item;
 
 import com.github.stars_sea.enderport.util.EffectHelper;
 import com.github.stars_sea.enderport.world.Location;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.LeveledCauldronBlock;
 import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -10,6 +14,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUsageContext;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
@@ -17,10 +22,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.Util;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.RegistryKey;
@@ -43,7 +45,13 @@ public class EnderScroll extends Item {
 
     @Override
     public int getMaxUseTime(ItemStack stack) {
-        return hasRecorded(stack) ? 20 : 40;
+        Location location = getData(stack);
+        Entity   entity   = stack.getHolder();
+        if (location != null && entity != null) {
+            double distance = location.pos().distanceTo(entity.getPos());
+            return (int) (Math.ceil(distance / 100)) * 30; // Add 1.5 sec for every 100 blocks.
+        }
+        return 40;
     }
 
     @Override
@@ -92,15 +100,35 @@ public class EnderScroll extends Item {
     }
 
     @Override
+    public ActionResult useOnBlock(@NotNull ItemUsageContext context) {
+        World      world = context.getWorld();
+        BlockPos   pos   = context.getBlockPos();
+        BlockState state = world.getBlockState(pos);
+        ItemStack  stack = context.getStack();
+        // 如果被右键方块是含水炼药锅 且 卷轴有记录, 则消除卷轴记录, 去掉一格水
+        if (hasRecorded(stack) && state.isOf(Blocks.WATER_CAULDRON)) {
+            clear(stack);
+            LeveledCauldronBlock.decrementFluidLevel(state, world, pos);
+            return ActionResult.SUCCESS;
+        }
+        // 如果被右键方块是含岩浆炼药锅, 则消毁卷轴
+        if (state.isOf(Blocks.LAVA_CAULDRON)) {
+            stack.decrement(1);
+            return ActionResult.CONSUME;
+        }
+        return ActionResult.PASS;
+    }
+
+    @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         Location location = getData(stack);
         if (location != null) {
             LiteralText worldText = new LiteralText(location.getDimensionName());
             if (world == null || !world.getRegistryKey().getValue().equals(location.dimension().getValue()))
                 worldText.formatted(Formatting.YELLOW);
-            else worldText.formatted(Formatting.RED).formatted(Formatting.ITALIC);
+            else worldText.formatted(Formatting.GRAY).formatted(Formatting.ITALIC);
 
-            MutableText posText = new LiteralText(location.toString(false)).formatted(Formatting.RED);
+            MutableText posText = new LiteralText(location.toString(false)).formatted(Formatting.GREEN);
 
             tooltip.add(worldText);
             tooltip.add(posText);
@@ -123,6 +151,10 @@ public class EnderScroll extends Item {
 
     private void record(@NotNull ItemStack stack, @NotNull PlayerEntity player) {
         record(stack, player.world.getRegistryKey(), player.getPos());
+    }
+
+    private void clear(@NotNull ItemStack stack) {
+        stack.getOrCreateNbt().remove("location");
     }
 
     @Nullable
@@ -148,6 +180,8 @@ public class EnderScroll extends Item {
         player.sendMessage(text, true);
         player.getItemCooldownManager().set(this, 30);
         player.incrementStat(Stats.USED.getOrCreateStat(this));
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 100));
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 30));
 
         // Effect
         EffectHelper.addTpParticles(world, player.getPos());

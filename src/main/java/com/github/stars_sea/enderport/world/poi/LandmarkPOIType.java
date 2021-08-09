@@ -23,10 +23,6 @@ public class LandmarkPOIType {
             EnderPortMod.genId("landmark"), 0, 1, Blocks.BEACON, Blocks.CONDUIT
     );
 
-    public static boolean test(@NotNull ServerWorld world, BlockPos pos) {
-        return world.getPointOfInterestStorage().test(pos, Landmark.getCompletionCondition());
-    }
-
     public static boolean isLandmark(@NotNull ServerWorld world, BlockPos pos) {
         BlockEntity entity = world.getBlockEntity(pos);
         if (entity instanceof BeaconBlockEntity beacon)
