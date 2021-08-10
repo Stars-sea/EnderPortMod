@@ -2,6 +2,7 @@ package com.github.stars_sea.enderport.util;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.projectile.thrown.EnderPearlEntity;
+import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
@@ -15,15 +16,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public final class EffectHelper {
-    public static void addTpParticles(World world, double x, double y, double z) {
+    public static void addParticles(World world, Vec3d pos, ParticleEffect effect) {
         for(int f = 0; f < 32; ++f) {
-            world.addParticle(ParticleTypes.PORTAL, x, y, z,
+            world.addParticle(effect, pos.x, pos.y, pos.z,
                     world.random.nextGaussian(), world.random.nextGaussian(), world.random.nextGaussian());
         }
     }
 
-    public static void addTpParticles(World world, @NotNull Vec3d pos) {
-        addTpParticles(world, pos.getX(), pos.getY(), pos.getZ());
+    public static void addTpParticles(World world, Vec3d pos) {
+        addParticles(world, pos, ParticleTypes.PORTAL);
     }
 
     @NotNull

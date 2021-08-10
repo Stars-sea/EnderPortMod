@@ -1,6 +1,7 @@
 package com.github.stars_sea.enderport.item;
 
 import com.github.stars_sea.enderport.util.EffectHelper;
+import com.github.stars_sea.enderport.util.ItemHelper;
 import com.github.stars_sea.enderport.world.Location;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -11,7 +12,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
@@ -25,16 +25,15 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class EnderScroll extends Item {
+public class EnderScroll extends LocationRecordable {
     public EnderScroll() {
-        super(new Settings().maxCount(1).group(ItemGroup.TRANSPORTATION));
+        super(new Settings().maxCount(16).group(ItemGroup.TRANSPORTATION));
     }
 
     // Override Methods
@@ -45,7 +44,7 @@ public class EnderScroll extends Item {
 
     @Override
     public int getMaxUseTime(ItemStack stack) {
-        Location location = getData(stack);
+        Location location = getLocation(stack);
         Entity   entity   = stack.getHolder();
         if (location != null && entity != null) {
             double distance = location.pos().distanceTo(entity.getPos());
@@ -62,7 +61,7 @@ public class EnderScroll extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, @NotNull PlayerEntity user, Hand hand) {
         ItemStack stack    = user.getStackInHand(hand);
-        Location  location = getData(stack);
+        Location  location = getLocation(stack);
         if (location != null) {
             Vec3d    effectPos = location.pos().add(0, 1, 0);
             BlockPos blockPos  = new BlockPos(effectPos);
@@ -85,7 +84,7 @@ public class EnderScroll extends Item {
 
         EffectHelper.killEffectEnderPearl(world, user.getBlockPos());
         if (progress >= 1 && user instanceof PlayerEntity player) {
-            Location location = getData(stack);
+            Location location = getLocation(stack);
 
             if (location == null)
                 recordPos(stack, world, player);
@@ -107,7 +106,7 @@ public class EnderScroll extends Item {
         ItemStack  stack = context.getStack();
         // 如果被右键方块是含水炼药锅 且 卷轴有记录, 则消除卷轴记录, 去掉一格水
         if (hasRecorded(stack) && state.isOf(Blocks.WATER_CAULDRON)) {
-            clear(stack);
+            clearLocation(stack);
             LeveledCauldronBlock.decrementFluidLevel(state, world, pos);
             return ActionResult.SUCCESS;
         }
@@ -121,7 +120,7 @@ public class EnderScroll extends Item {
 
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
-        Location location = getData(stack);
+        Location location = getLocation(stack);
         if (location != null) {
             LiteralText worldText = new LiteralText(location.getDimensionName());
             if (world == null || !world.getRegistryKey().getValue().equals(location.dimension().getValue()))
@@ -133,38 +132,19 @@ public class EnderScroll extends Item {
             tooltip.add(worldText);
             tooltip.add(posText);
         } else {
-            tooltip.add(new TranslatableText("tooltip.enderport.ender_scroll.blank"));
+            tooltip.add(new TranslatableText("tooltip.enderport.ender_scroll.blank").formatted(Formatting.GRAY));
         }
 
         super.appendTooltip(stack, world, tooltip, context);
     }
 
-    // Tool Methods
-    public static boolean hasRecorded(@NotNull ItemStack stack) {
-        return Location.valid(stack.getOrCreateSubNbt("location"));
-    }
-
-    private void record(@NotNull ItemStack stack, @NotNull RegistryKey<World> world, Vec3d pos) {
-        Location location = new Location(world, pos);
-        stack.getOrCreateNbt().put("location", location.getNbt());
-    }
-
-    private void record(@NotNull ItemStack stack, @NotNull PlayerEntity player) {
-        record(stack, player.world.getRegistryKey(), player.getPos());
-    }
-
-    private void clear(@NotNull ItemStack stack) {
-        stack.getOrCreateNbt().remove("location");
-    }
-
-    @Nullable
-    private Location getData(@NotNull ItemStack stack) {
-        return Location.deserialize(stack.getOrCreateSubNbt("location"));
-    }
-
     // Wrapper Methods
-    private void recordPos(ItemStack stack, @NotNull World world, PlayerEntity player) {
-        record(stack, player);
+    private void recordPos(@NotNull ItemStack stack, @NotNull World world, @NotNull PlayerEntity player) {
+        ItemStack newStack = new ItemStack(this);
+        recordLocation(newStack, player.world.getRegistryKey(), player.getPos());
+
+        stack.decrement(1);
+        ItemHelper.tryGiveToPlayer(player, newStack);
 
         player.incrementStat(Stats.USED.getOrCreateStat(this));
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 100));

@@ -57,13 +57,15 @@ public class LandmarkPOIType {
                 .map(pos -> Map.entry(pos, pos.getSquaredDistance(center)))
                 .sorted(Comparator.comparingDouble(Map.Entry::getValue));
 
-        BlockPos first = null;
+        BlockPos nearest = null;
         for (var it = stream.iterator(); it.hasNext(); ) {
             Map.Entry<BlockPos, Double> entry = it.next();
+            BlockPos pos = entry.getKey();
 
-            if (first == null) first = entry.getKey();
-            if (entry.getValue() >= 10) return Optional.of(entry.getKey());
+            if (entry.getValue() >= 10)
+                return Optional.of(pos);
+            else nearest = pos;
         }
-        return Optional.ofNullable(first);
+        return Optional.ofNullable(nearest);
     }
 }

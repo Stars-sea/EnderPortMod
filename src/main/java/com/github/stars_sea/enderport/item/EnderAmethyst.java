@@ -1,6 +1,7 @@
 package com.github.stars_sea.enderport.item;
 
 import com.github.stars_sea.enderport.util.EffectHelper;
+import com.github.stars_sea.enderport.util.ItemHelper;
 import com.github.stars_sea.enderport.world.Location;
 import com.github.stars_sea.enderport.world.poi.LandmarkPOIType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -8,6 +9,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.stat.Stats;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
@@ -30,7 +32,7 @@ public class EnderAmethyst extends Item {
     }
 
     public EnderAmethyst() {
-        this(2048);
+        this(1024);
     }
 
     @Override
@@ -42,26 +44,13 @@ public class EnderAmethyst extends Item {
 
         if (world instanceof ServerWorld serverWorld) {
             user.getItemCooldownManager().set(this, 200);
+            user.incrementStat(Stats.USED.getOrCreateStat(this));
 
             // TODO: Need to fix.
             // We don't use Future because we can load poi in this case.
-//            CompletableFuture.supplyAsync(
-//                    () -> LandmarkPOIType.getNearestLandmark(serverWorld, user.getBlockPos(), searchDistance)
-//            ).thenAccept(pos -> pos.ifPresentOrElse(
-//                    landmark -> {
-//                        prepareToTeleport(new Location(world, landmark).add(0, 1, 0), user);
-//                        user.setGlowing(true);
-//                        stack.decrement(1);
-//                        EffectHelper.playBrokenSound(world, user.getBlockPos());
-//                    },
-//                    () -> {
-//                        MutableText text = new TranslatableText("tip.enderport.not_fount_landmark", searchDistance);
-//                        user.sendSystemMessage(text.formatted(Formatting.RED), Util.NIL_UUID);
-//                    }
-//            ));
             LandmarkPOIType.getNearestLandmark(serverWorld, user.getBlockPos(), searchDistance).ifPresentOrElse(
                     landmark -> {
-                        prepareToTeleport(new Location(world, landmark), user);
+                        prepareToTeleport(new Location(world.getRegistryKey(), landmark), user);
                         user.setGlowing(true);
                     },
                     () -> {
@@ -69,9 +58,7 @@ public class EnderAmethyst extends Item {
                         user.sendSystemMessage(text.formatted(Formatting.RED), Util.NIL_UUID);
 
                         // If not found landmark, give a new amethyst back to the player.
-                        if (user.getInventory().getEmptySlot() != 0)
-                            user.giveItemStack(new ItemStack(this));
-                        else user.dropItem(new ItemStack(this), true);
+                        ItemHelper.tryGiveToPlayer(user, new ItemStack(this));
                     }
             );
         }
@@ -86,7 +73,7 @@ public class EnderAmethyst extends Item {
         new Timer().schedule(new TimerTask() {
             @Override public void run() {
                 user.setGlowing(false);
-                location.teleportToNearby(4, user);
+                location.teleportToNearbySafely(4, user);
             }
         }, (long) (Math.ceil(distance / 100) * 1000)); // Add 1 sec for every 100 blocks.
     }

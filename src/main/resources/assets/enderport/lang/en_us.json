@@ -1,9 +1,11 @@
 {
+  "item.enderport.ender_totem": "Ender Totem",
   "item.enderport.ender_scroll": "Ender Scroll",
   "item.enderport.ender_pearl_fragment": "Ender Pearl Fragment",
   "item.enderport.ender_amethyst": "Ender Amethyst",
 
   "tooltip.enderport.ender_scroll.blank": "Blank",
+  "tooltip.enderport.ender_totem.death_pos": "Last died at:",
   "tip.enderport.tp_fail": "Failed to teleport to %s",
   "tip.enderport.tp_succeed": "Teleport to %s successfully",
   "tip.enderport.found_landmark": "Found a landmark %d blocks away from you",

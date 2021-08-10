@@ -9,7 +9,7 @@ public final class EnderPortItems {
     public static final EnderAmethyst ENDER_AMETHYST = new EnderAmethyst();
     public static final EnderPearlFragment ENDER_PEARL_FRAGMENT = new EnderPearlFragment();
 
-    public static void register(String path, Item item) {
+    private static void register(String path, Item item) {
         Registry.register(Registry.ITEM, EnderPortMod.genId(path), item);
     }
 
