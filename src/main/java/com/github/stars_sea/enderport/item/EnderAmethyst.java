@@ -1,7 +1,7 @@
 package com.github.stars_sea.enderport.item;
 
+import com.github.stars_sea.enderport.sound.SoundShortcut;
 import com.github.stars_sea.enderport.util.EffectHelper;
-import com.github.stars_sea.enderport.util.ItemHelper;
 import com.github.stars_sea.enderport.world.Location;
 import com.github.stars_sea.enderport.world.poi.LandmarkPOIType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -39,7 +39,7 @@ public class EnderAmethyst extends Item {
     public TypedActionResult<ItemStack> use(@NotNull World world, @NotNull PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
         stack.decrement(1);
-        EffectHelper.playBrokenSound(world, user.getBlockPos());
+        SoundShortcut.AMETHYST_BREAK.play(user);
         EffectHelper.addTpParticles(world, user.getPos());
 
         if (world instanceof ServerWorld serverWorld) {
@@ -50,7 +50,7 @@ public class EnderAmethyst extends Item {
             // We don't use Future because we can load poi in this case.
             LandmarkPOIType.getNearestLandmark(serverWorld, user.getBlockPos(), searchDistance).ifPresentOrElse(
                     landmark -> {
-                        prepareToTeleport(new Location(world.getRegistryKey(), landmark), user);
+                        prepareToTeleport(new Location(world, landmark), user);
                         user.setGlowing(true);
                     },
                     () -> {
@@ -58,7 +58,7 @@ public class EnderAmethyst extends Item {
                         user.sendSystemMessage(text.formatted(Formatting.RED), Util.NIL_UUID);
 
                         // If not found landmark, give a new amethyst back to the player.
-                        ItemHelper.tryGiveToPlayer(user, new ItemStack(this));
+                        user.getInventory().offerOrDrop(new ItemStack(this));
                     }
             );
         }

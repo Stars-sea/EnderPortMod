@@ -22,6 +22,14 @@ public final record Location(RegistryKey<World> dimension, Vec3d pos) {
         this(dimension, Vec3d.ofCenter(pos));
     }
 
+    public Location(@NotNull World world, Vec3i pos) {
+        this(world.getRegistryKey(), pos);
+    }
+
+    public Location(@NotNull World world, Vec3d pos) {
+        this(world.getRegistryKey(), pos);
+    }
+
     @NotNull
     public String getDimensionName() {
         return dimension.getValue().toString();

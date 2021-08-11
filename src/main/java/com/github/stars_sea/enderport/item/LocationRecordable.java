@@ -5,9 +5,6 @@ import com.github.stars_sea.enderport.world.Location;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,10 +30,6 @@ public class LocationRecordable extends Item {
 
     public static void recordLocation(@NotNull ItemStack stack, @NotNull Location location) {
         stack.getOrCreateNbt().put(LOCATION_NBT_KEY, PosNbtHelper.getLocationNbt(location));
-    }
-
-    public static void recordLocation(@NotNull ItemStack stack, @NotNull RegistryKey<World> world, Vec3d pos) {
-        recordLocation(stack, new Location(world, pos));
     }
 
     public static void clearLocation(@NotNull ItemStack stack) {
