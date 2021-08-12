@@ -4,10 +4,14 @@ import com.github.stars_sea.enderport.sound.SoundShortcut;
 import com.github.stars_sea.enderport.util.EffectHelper;
 import com.github.stars_sea.enderport.world.Location;
 import com.github.stars_sea.enderport.world.poi.LandmarkPOIType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.MutableText;
@@ -16,23 +20,25 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class EnderAmethyst extends Item {
     public final int searchDistance;
+    public final int maxTpCount;
 
-    public EnderAmethyst(int searchDistance) {
+    public EnderAmethyst(int searchDistance, int maxTpCount) {
         super(new Settings().maxCount(16).group(ItemGroup.TRANSPORTATION));
         this.searchDistance = searchDistance;
+        this.maxTpCount     = maxTpCount;
     }
 
-    public EnderAmethyst() {
-        this(1024);
+    public EnderAmethyst(int maxTpCount) {
+        this(1024, maxTpCount);
     }
 
     @Override
@@ -49,10 +55,7 @@ public class EnderAmethyst extends Item {
             // TODO: Need to fix.
             // We don't use Future because we can load poi in this case.
             LandmarkPOIType.getNearestLandmark(serverWorld, user.getBlockPos(), searchDistance).ifPresentOrElse(
-                    landmark -> {
-                        prepareToTeleport(new Location(world, landmark), user);
-                        user.setGlowing(true);
-                    },
+                    landmark -> prepareToTeleportAround(new Location(world, landmark), user, maxTpCount),
                     () -> {
                         MutableText text = new TranslatableText("tip.enderport.not_fount_landmark", searchDistance);
                         user.sendSystemMessage(text.formatted(Formatting.RED), Util.NIL_UUID);
@@ -65,16 +68,36 @@ public class EnderAmethyst extends Item {
         return TypedActionResult.consume(stack);
     }
 
-    public static void prepareToTeleport(@NotNull Location location, @NotNull PlayerEntity user) {
-        double      distance  = Vec3d.of(user.getBlockPos()).distanceTo(location.pos());
-        MutableText text      = new TranslatableText("tip.enderport.found_landmark", Math.round(distance));
-        user.sendMessage(text.formatted(Formatting.GREEN), true);
+    protected static void prepareToTeleportAround(@NotNull Location location, @NotNull PlayerEntity player, int max) {
+        MinecraftServer server = player.getServer();
+        if (server == null) return;
+
+        Location pos = new Location(player.world, player.getPos());
+
+        var sources = (max == 1) ? List.of(player) : pos.getLivingEntitiesAround(server, 5);
+        List<? extends LivingEntity> entities = sources.subList(0, Math.min(sources.size(), max));
+
+        double distance = pos.pos().distanceTo(location.pos());
+        double seconds  = Math.ceil(distance / 100);
+
+        for (LivingEntity entity : entities) {
+            if (entity instanceof PlayerEntity playerEntity) {
+                MutableText text = new TranslatableText("tip.enderport.found_landmark", Math.round(distance));
+                playerEntity.sendMessage(text.formatted(Formatting.GREEN), true);
+            }
+
+            entity.addStatusEffect(new StatusEffectInstance(
+                    StatusEffects.GLOWING, (int) (seconds * 20), 0, false, false
+            ));
+        }
 
         new Timer().schedule(new TimerTask() {
             @Override public void run() {
-                user.setGlowing(false);
-                location.teleportToNearbySafely(4, user);
+                for (LivingEntity entity : entities) {
+                    Location nearby = location.teleportToNearbySafely(3, entity);
+                    if (nearby != null) entity.refreshPositionAfterTeleport(nearby.pos());
+                }
             }
-        }, (long) (Math.ceil(distance / 100) * 1000)); // Add 1 sec for every 100 blocks.
+        }, (long) (seconds * 1000)); // Add 1 sec for every 100 blocks.
     }
 }

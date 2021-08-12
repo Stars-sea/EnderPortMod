@@ -1,19 +1,18 @@
 package com.github.stars_sea.enderport.world;
 
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.TypeFilter;
+import net.minecraft.util.math.*;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Random;
 
 public final record Location(RegistryKey<World> dimension, Vec3d pos) {
@@ -33,6 +32,11 @@ public final record Location(RegistryKey<World> dimension, Vec3d pos) {
     @NotNull
     public String getDimensionName() {
         return dimension.getValue().toString();
+    }
+
+    @Nullable
+    public ServerWorld getWorld(@NotNull MinecraftServer server) {
+        return server.getWorld(dimension);
     }
 
     public double getX() {
@@ -58,25 +62,37 @@ public final record Location(RegistryKey<World> dimension, Vec3d pos) {
         return toString(true);
     }
 
-    public boolean teleport(@NotNull PlayerEntity player) {
-        MinecraftServer server = player.getServer();
+    public boolean teleport(@NotNull LivingEntity entity) {
+        MinecraftServer server = entity.getServer();
         if (server == null) return false;
 
-        ServerWorld world = server.getWorld(dimension);
+        ServerWorld world = getWorld(server);
         if (world == null) return false;
+        if (world.isClient) return true;
 
-        if (player instanceof ServerPlayerEntity serverPlayer)
-            serverPlayer.teleport(world, getX(), getY(), getZ(), player.headYaw, player.prevPitch);
+        if (entity instanceof ServerPlayerEntity player) {
+            player.teleport(world, getX(), getY(), getZ(), player.prevYaw, player.prevPitch);
+            return true;
+        }
+
+        LivingEntity entity1 = entity;
+        if (entity.world.getRegistryKey() != dimension) {
+            if (entity.moveToWorld(world) instanceof LivingEntity living)
+                entity1 = living;
+            else return false;
+        }
+
+        entity1.teleport(getX(), getY(), getZ());
         return true;
     }
 
     @Nullable
-    public Location teleportToNearbySafely(int offset, @NotNull PlayerEntity player) {
-        MinecraftServer server = player.getServer();
+    public Location teleportToNearbySafely(int offset, @NotNull LivingEntity entity) {
+        MinecraftServer server = entity.getServer();
         if (server == null) return null;
 
         Location nearby = getNearbySafeLocation(offset, server);
-        if (nearby != null && nearby.teleport(player))
+        if (nearby != null && nearby.teleport(entity))
             return nearby;
 
         return null;
@@ -111,8 +127,31 @@ public final record Location(RegistryKey<World> dimension, Vec3d pos) {
         return new Location(dimension, pos.add(x, y, z));
     }
 
+    @NotNull @Contract("_, _ -> new")
+    public List<LivingEntity> getLivingEntitiesAround(@NotNull MinecraftServer server, int radius) {
+        ServerWorld world = server.getWorld(dimension);
+        if (world == null) return List.of();
+
+        return world.getEntitiesByType(
+                TypeFilter.instanceOf(LivingEntity.class), box(radius),
+                entity -> pos.distanceTo(entity.getPos()) <= radius
+        );
+    }
+
     @NotNull @Contract(" -> new")
     public BlockPos.Mutable mutable() {
         return new BlockPos.Mutable(getX(), getY(), getZ());
+    }
+
+    @NotNull @Contract("_ -> new")
+    public Box box(int a) {
+        final double
+                x = getX(),
+                y = getY(),
+                z = getZ();
+        return new Box(
+                x + a, y + a, z + a,
+                x - a, y - a, z - a
+        );
     }
 }

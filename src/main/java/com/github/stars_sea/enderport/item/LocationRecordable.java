@@ -20,20 +20,26 @@ public class LocationRecordable extends Item {
     }
 
     public static boolean hasRecorded(@NotNull ItemStack stack) {
-        return PosNbtHelper.validLocationNbt(getLocationNbt(stack));
+        return stack.getItem() instanceof LocationRecordable &&
+                PosNbtHelper.validLocationNbt(getLocationNbt(stack));
     }
 
     @Nullable
     public static Location getLocation(@NotNull ItemStack stack) {
-        return PosNbtHelper.getLocation(getLocationNbt(stack));
+        return hasRecorded(stack) ? PosNbtHelper.getLocation(getLocationNbt(stack)) : null;
     }
 
-    public static void recordLocation(@NotNull ItemStack stack, @NotNull Location location) {
-        stack.getOrCreateNbt().put(LOCATION_NBT_KEY, PosNbtHelper.getLocationNbt(location));
+    public static boolean recordLocation(@NotNull ItemStack stack, @NotNull Location location) {
+        if (stack.getItem() instanceof LocationRecordable) {
+            stack.getOrCreateNbt().put(LOCATION_NBT_KEY, PosNbtHelper.getLocationNbt(location));
+            return true;
+        }
+        return false;
     }
 
     public static void clearLocation(@NotNull ItemStack stack) {
-        stack.getOrCreateNbt().remove(LOCATION_NBT_KEY);
+        if (hasRecorded(stack))
+            stack.getOrCreateNbt().remove(LOCATION_NBT_KEY);
     }
 
     public ItemStack genStackWithLocation(int count, Location location) {

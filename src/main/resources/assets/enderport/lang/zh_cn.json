@@ -1,8 +1,8 @@
 {
-  "item.enderport.ender_totem": "终末图腾",
   "item.enderport.ender_scroll": "末影卷轴",
   "item.enderport.ender_pearl_fragment": "末影珍珠碎片",
   "item.enderport.ender_amethyst": "末影紫晶",
+  "item.enderport.ender_amethyst_intact": "末影紫晶 · 全",
 
   "tooltip.enderport.ender_scroll.blank": "空白",
   "tooltip.enderport.ender_totem.death_pos": "上次死亡:",

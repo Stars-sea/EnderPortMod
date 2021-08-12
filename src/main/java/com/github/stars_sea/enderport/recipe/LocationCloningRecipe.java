@@ -29,7 +29,7 @@ public class LocationCloningRecipe extends SpecialCraftingRecipe {
             ItemStack curr = inventory.getStack(i);
             if (curr.isEmpty()) continue;
 
-            if (!curr.isOf(EnderPortItems.ENDER_SCROLL))
+            if (!(curr.getItem() instanceof LocationRecordable))
                 return false;
 
             if (LocationRecordable.hasRecorded(curr)) {
@@ -50,7 +50,7 @@ public class LocationCloningRecipe extends SpecialCraftingRecipe {
             ItemStack curr = inventory.getStack(i);
             if (curr.isEmpty()) continue;
 
-            if (!curr.isOf(EnderPortItems.ENDER_SCROLL))
+            if (!(curr.getItem() instanceof LocationRecordable))
                 return ItemStack.EMPTY;
 
             if (LocationRecordable.hasRecorded(curr)) {

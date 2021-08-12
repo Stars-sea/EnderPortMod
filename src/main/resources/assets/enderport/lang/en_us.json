@@ -1,8 +1,8 @@
 {
-  "item.enderport.ender_totem": "Ender Totem",
   "item.enderport.ender_scroll": "Ender Scroll",
   "item.enderport.ender_pearl_fragment": "Ender Pearl Fragment",
   "item.enderport.ender_amethyst": "Ender Amethyst",
+  "item.enderport.ender_amethyst_intact": "Intact Ender Amethyst",
 
   "tooltip.enderport.ender_scroll.blank": "Blank",
   "tooltip.enderport.ender_totem.death_pos": "Last died at:",
