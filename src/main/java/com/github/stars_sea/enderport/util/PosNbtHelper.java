@@ -2,10 +2,10 @@ package com.github.stars_sea.enderport.util;
 
 import com.github.stars_sea.enderport.world.Location;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +62,7 @@ public final class PosNbtHelper {
         if (!validLocationNbt(nbt)) return null;
 
         Identifier         world = new Identifier(nbt.getString("dimension"));
-        RegistryKey<World> key   = RegistryKey.of(Registry.WORLD_KEY, world);
+        RegistryKey<World> key   = RegistryKey.of(RegistryKeys.WORLD, world);
         Vec3d              pos   = PosNbtHelper.getVec3d(nbt.getCompound("pos"));
         return new Location(key, pos);
     }

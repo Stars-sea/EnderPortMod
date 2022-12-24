@@ -6,7 +6,7 @@ import com.github.stars_sea.enderport.util.ItemHelper;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.object.builder.v1.client.model.FabricModelPredicateProviderRegistry;
+import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.util.Identifier;
 
 @Environment(EnvType.CLIENT)
@@ -14,7 +14,7 @@ public class EnderPortClientMod implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         // Predicate Provider Register
-        FabricModelPredicateProviderRegistry.register(
+        ModelPredicateProviderRegistry.register(
                 EnderPortItems.ENDER_SCROLL,
                 new Identifier("progress"),
                 (stack, world, entity, seed) -> {
@@ -23,7 +23,7 @@ public class EnderPortClientMod implements ClientModInitializer {
                     return 0F;
                 }
         );
-        FabricModelPredicateProviderRegistry.register(
+        ModelPredicateProviderRegistry.register(
                 EnderPortItems.ENDER_SCROLL,
                 new Identifier("recorded"),
                 (stack, world, entity, seed) -> EnderScroll.hasRecorded(stack) ? 1F : 0F

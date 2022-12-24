@@ -1,8 +1,7 @@
 package com.github.stars_sea.enderport;
 
-import com.github.stars_sea.enderport.event.listener.BlockEntityEventsHandler;
-import com.github.stars_sea.enderport.event.listener.LootTableLoadingHandler;
 import com.github.stars_sea.enderport.item.EnderPortItems;
+import com.github.stars_sea.enderport.loot.EnderPortLootTableManager;
 import com.github.stars_sea.enderport.recipe.EnderPortRecipeSerializers;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.util.Identifier;
@@ -16,8 +15,7 @@ public class EnderPortMod implements ModInitializer {
 	public void onInitialize() {
 		EnderPortItems.registerAll();
 		EnderPortRecipeSerializers.registerAll();
-		LootTableLoadingHandler.register();
-		BlockEntityEventsHandler.register();
+		EnderPortLootTableManager.register();
 	}
 
 	@NotNull @Contract("_ -> new")

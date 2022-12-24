@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.MapCloningRecipe;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.SpecialCraftingRecipe;
+import net.minecraft.recipe.book.CraftingRecipeCategory;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -16,8 +17,8 @@ import org.jetbrains.annotations.NotNull;
  * Reference: {@link MapCloningRecipe}
  */
 public class LocationCloningRecipe extends SpecialCraftingRecipe {
-    public LocationCloningRecipe(Identifier id) {
-        super(id);
+    public LocationCloningRecipe(Identifier id, CraftingRecipeCategory category) {
+        super(id, category);
     }
 
     @Override

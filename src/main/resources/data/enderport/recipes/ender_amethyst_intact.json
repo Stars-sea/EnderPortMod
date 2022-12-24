@@ -1,12 +1,11 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "FOF",
+    " O ",
     "O#O",
-    "FOF"
+    " O "
   ],
   "key": {
-    "F": { "item": "enderport:ender_pearl_fragment" },
     "O": { "item": "enderport:ender_amethyst" },
     "#": { "item": "minecraft:diamond" }
   },

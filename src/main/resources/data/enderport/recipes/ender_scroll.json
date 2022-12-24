@@ -7,8 +7,8 @@
   ],
   "key": {
     "F": { "item": "enderport:ender_pearl_fragment" },
-    "O": { "item": "enderport:ender_amethyst" },
-    "#": { "item": "minecraft:paper" }
+    "#": { "item": "enderport:ender_amethyst" },
+    "O": { "item": "minecraft:paper" }
   },
   "result": { "item": "enderport:ender_scroll" }
 }

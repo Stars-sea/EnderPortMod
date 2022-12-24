@@ -2,7 +2,8 @@ package com.github.stars_sea.enderport.item;
 
 import com.github.stars_sea.enderport.EnderPortMod;
 import net.minecraft.item.Item;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 
 public final class EnderPortItems {
     public static final EnderScroll ENDER_SCROLL = new EnderScroll();
@@ -11,7 +12,7 @@ public final class EnderPortItems {
     public static final EnderPearlFragment ENDER_PEARL_FRAGMENT = new EnderPearlFragment();
 
     private static void register(String path, Item item) {
-        Registry.register(Registry.ITEM, EnderPortMod.genId(path), item);
+        Registry.register(Registries.ITEM, EnderPortMod.genId(path), item);
     }
 
     public static void registerAll() {

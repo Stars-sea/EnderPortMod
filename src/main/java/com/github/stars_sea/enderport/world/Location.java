@@ -6,7 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.*;
-import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Random;
 
-public final record Location(RegistryKey<World> dimension, Vec3d pos) {
+public record Location(RegistryKey<World> dimension, Vec3d pos) {
 
     public Location(RegistryKey<World> dimension, Vec3i pos) {
         this(dimension, Vec3d.ofCenter(pos));
@@ -136,6 +136,14 @@ public final record Location(RegistryKey<World> dimension, Vec3d pos) {
                 TypeFilter.instanceOf(LivingEntity.class), box(radius),
                 entity -> pos.distanceTo(entity.getPos()) <= radius
         );
+    }
+
+    public static boolean isSameWorld(RegistryKey<World> regKey, @Nullable World world) {
+        return world != null && regKey.getValue().equals(world.getRegistryKey().getValue());
+    }
+
+    public boolean isSameWorld(@Nullable World world) {
+        return world != null && dimension.getValue().equals(world.getRegistryKey().getValue());
     }
 
     @NotNull @Contract(" -> new")

@@ -6,20 +6,17 @@ import com.github.stars_sea.enderport.util.ItemHelper;
 import com.github.stars_sea.enderport.world.Location;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.LeveledCauldronBlock;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemGroups;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.stat.Stats;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -31,7 +28,8 @@ import java.util.List;
 
 public class EnderScroll extends LocationRecordable {
     public EnderScroll() {
-        super(new Settings().maxCount(16).group(ItemGroup.TRANSPORTATION));
+        super(new Settings().maxCount(16));
+        ItemHelper.addToGroup(this, ItemGroups.TOOLS, ItemGroups.INGREDIENTS);
     }
 
     // Override Methods
@@ -102,7 +100,6 @@ public class EnderScroll extends LocationRecordable {
         if (hasRecorded(total) && state.isOf(Blocks.WATER_CAULDRON)) {
             total.decrement(1);
             if (!world.isClient) player.getInventory().offerOrDrop(new ItemStack(this));
-            LeveledCauldronBlock.decrementFluidLevel(state, world, pos);
             SoundShortcut.SPLASH.play(player);
             return ActionResult.SUCCESS;
         }
@@ -119,17 +116,17 @@ public class EnderScroll extends LocationRecordable {
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         Location location = getLocation(stack);
         if (location != null) {
-            LiteralText worldText = new LiteralText(location.getDimensionName());
-            if (world == null || !world.getRegistryKey().getValue().equals(location.dimension().getValue()))
+            MutableText worldText = Text.literal(location.getDimensionName());
+            if (!location.isSameWorld(world))
                 worldText.formatted(Formatting.YELLOW);
-            else worldText.formatted(Formatting.GRAY).formatted(Formatting.ITALIC);
+            else worldText.formatted(Formatting.GRAY, Formatting.ITALIC);
 
-            MutableText posText = new LiteralText(location.toString(false)).formatted(Formatting.GREEN);
+            Text posText = Text.literal(location.toString(false)).formatted(Formatting.GREEN);
 
             tooltip.add(worldText);
             tooltip.add(posText);
         } else {
-            tooltip.add(new TranslatableText("tooltip.enderport.ender_scroll.blank").formatted(Formatting.GRAY));
+            tooltip.add(Text.translatable("tooltip.enderport.ender_scroll.blank").formatted(Formatting.GRAY));
         }
 
         super.appendTooltip(stack, world, tooltip, context);
@@ -143,7 +140,7 @@ public class EnderScroll extends LocationRecordable {
         player.getInventory().offerOrDrop(newStack);
 
         player.incrementStat(Stats.USED.getOrCreateStat(this));
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 200, 2));
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 100, 2));
         player.getHungerManager().add(-2, 0.2f);
         player.getItemCooldownManager().set(this, 60);
 
@@ -151,8 +148,7 @@ public class EnderScroll extends LocationRecordable {
     }
 
     private void teleportSucceed(@NotNull PlayerEntity player, @NotNull World world, @NotNull Location location) {
-        Text text = new TranslatableText("tip.enderport.tp_succeed", location).formatted(Formatting.GREEN);
-        player.sendMessage(text, true);
+        player.sendMessage(Text.translatable("tip.enderport.tp_succeed", location).formatted(Formatting.GREEN), true);
         player.getItemCooldownManager().set(this, 30);
         player.incrementStat(Stats.USED.getOrCreateStat(this));
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 100));
@@ -164,7 +160,9 @@ public class EnderScroll extends LocationRecordable {
     }
 
     private void teleportFail(@NotNull PlayerEntity player, Location location) {
-        Text text = new TranslatableText("tip.enderport.tp_fail", location).formatted(Formatting.RED);
-        player.sendSystemMessage(text, Util.NIL_UUID);
+        player.sendMessage(
+                Text.translatable("tip.enderport.tp_fail", location).formatted(Formatting.RED),
+                false
+        );
     }
 }
