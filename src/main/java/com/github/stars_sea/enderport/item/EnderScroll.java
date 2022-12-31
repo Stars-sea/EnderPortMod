@@ -1,15 +1,13 @@
 package com.github.stars_sea.enderport.item;
 
-import com.github.stars_sea.enderport.client.gui.screen.ingame.NamingEnderScrollScreen;
+import com.github.stars_sea.enderport.network.server.SendToClient;
 import com.github.stars_sea.enderport.sound.SoundShortcut;
 import com.github.stars_sea.enderport.util.EffectHelper;
 import com.github.stars_sea.enderport.util.ItemHelper;
 import com.github.stars_sea.enderport.world.Location;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.TooltipContext;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -19,6 +17,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -30,6 +29,9 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,17 +72,15 @@ public class EnderScroll extends LocationRecordable {
     public void onStoppedUsing(ItemStack stack, @NotNull World world, @NotNull LivingEntity user, int remainingUseTicks) {
         float progress = ItemHelper.getUseProgress(getMaxUseTime(stack) - remainingUseTicks, stack);
 
-        if (progress >= 1 && user instanceof PlayerEntity player) {
+        if (progress >= 1 && user instanceof ServerPlayerEntity player) {
             Location location = getLocation(stack);
 
             if (location == null) {
-                location = new Location(player.world, player.getPos());
-                if (world.isClient)
-                    MinecraftClient.getInstance().setScreen(new NamingEnderScrollScreen(location));
+                if (!world.isClient) SendToClient.sendOpenRenameScreen(player);
             } else {
                 if (player.isSneaking())
                     clearPos(player, stack);
-                else if (world.isClient || location.teleport(player))
+                else if (world.isClient || location.teleport(player, true))
                     teleportSucceed(player, world, location);
                 else teleportFail(player, location);
             }
@@ -122,12 +122,11 @@ public class EnderScroll extends LocationRecordable {
             MutableText distance  = null;
             if (location.isSameWorld(world)) {
                 worldText.formatted(Formatting.GRAY, Formatting.ITALIC);
-                Entity entity = MinecraftClient.getInstance().player;
-                if (world.isClient && entity != null) {
-                    double d = entity.getPos().distanceTo(location.pos());
+                if (world.isClient && tryGetClientPlayer() instanceof PlayerEntity player) {
+                    double d = player.getPos().distanceTo(location.pos());
                     distance = Text.translatable("tooltip.enderport.ender_scroll.distance", Math.round(d));
                     if (d > 20) distance.formatted(Formatting.GREEN);
-                    else distance.formatted(Formatting.GRAY, Formatting.ITALIC);
+                    else distance.formatted(Formatting.GRAY);
                 }
             } else worldText.formatted(Formatting.YELLOW);
 
@@ -140,9 +139,11 @@ public class EnderScroll extends LocationRecordable {
     }
 
     // Wrapper Methods
-    public void recordPos(@NotNull PlayerEntity player, Location location, String name) {
-        ItemStack       newStack  = genStackWithLocation(1, location).setCustomName(Text.of(name));
+    public void recordPos(@NotNull PlayerEntity player, Location location, @Nullable String name) {
+        ItemStack       newStack  = genStackWithLocation(1, location);
         PlayerInventory inventory = player.getInventory();
+        if (name != null) newStack.setCustomName(Text.literal(name));
+
         if (player.isCreative())
             inventory.offerOrDrop(newStack);
         else findBlankEnderScroll(inventory).ifPresent(blank -> {
@@ -201,5 +202,23 @@ public class EnderScroll extends LocationRecordable {
                 return Optional.of(stack);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Get a {@link net.minecraft.client.network.ClientPlayerEntity} instance in current minecraft client.
+     * The reason why use reflection is to be compatible with the server.
+     * @return An instance of {@code ClientPlayerEntity} in client side. {@code null} in server side.
+     */
+    @Nullable
+    private static LivingEntity tryGetClientPlayer() {
+        try {
+            Class<?> minecraftClient   = Class.forName("net.minecraft.client.MinecraftClient");
+            Field    playerField       = minecraftClient.getField("player");
+            Method   getInstanceMethod = minecraftClient.getMethod("getInstance");
+            return (PlayerEntity) playerField.get(getInstanceMethod.invoke(null));
+        }
+        catch (ClassNotFoundException | NoSuchFieldException | NoSuchMethodException |
+               IllegalAccessException | InvocationTargetException ignored) { }
+        return null;
     }
 }

@@ -86,7 +86,7 @@ public class EnderAmethyst extends Item {
         MinecraftServer server = player.getServer();
         if (server == null) return;
 
-        Location pos = new Location(player.world, player.getPos());
+        Location pos = new Location(player);
 
         var sources  = maxTpCount == 1 ? List.of(player) : pos.getLivingEntitiesAround(server, 10);
         var entities = sources.subList(0, Math.min(sources.size(), maxTpCount));
@@ -102,7 +102,7 @@ public class EnderAmethyst extends Item {
         }
 
         for (LivingEntity entity : entities) {
-            Location nearby = location.teleportToNearbySafely(3, entity, 10);
+            Location nearby = location.teleportToNearbySafely(3, entity, true, 10);
             if (nearby != null) entity.refreshPositionAfterTeleport(nearby.pos());
         }
     }

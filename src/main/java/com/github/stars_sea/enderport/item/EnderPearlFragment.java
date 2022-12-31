@@ -26,8 +26,8 @@ public class EnderPearlFragment extends Item {
         ItemStack stack = user.getStackInHand(hand);
         stack.decrement(1);
 
-        Location location = new Location(world, user.getPos());
-        location.teleportToNearbySafely(30, user, 10);
+        Location location = new Location(user);
+        location.teleportToNearbySafely(30, user, false, 10);
         user.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, location.pos());
         EffectHelper.addTpParticles(world, user.getPos());
         SoundShortcut.TELEPORT.play(user);

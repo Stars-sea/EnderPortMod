@@ -1,18 +1,19 @@
 package com.github.stars_sea.enderport.world;
 
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.*;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 public record Location(RegistryKey<World> dimension, Vec3d pos) {
@@ -31,6 +32,10 @@ public record Location(RegistryKey<World> dimension, Vec3d pos) {
 
     public Location(@NotNull GlobalPos globalPos) {
         this(globalPos.getDimension(), globalPos.getPos());
+    }
+
+    public Location(@Nullable LivingEntity living) {
+        this(Objects.requireNonNull(living).world, living.getPos());
     }
 
     @NotNull
@@ -66,7 +71,7 @@ public record Location(RegistryKey<World> dimension, Vec3d pos) {
         return toString(true);
     }
 
-    public boolean teleport(@NotNull LivingEntity entity) {
+    public boolean teleport(@NotNull LivingEntity entity, boolean isOnLanding) {
         MinecraftServer server = entity.getServer();
         if (server == null) return false;
 
@@ -76,7 +81,7 @@ public record Location(RegistryKey<World> dimension, Vec3d pos) {
 
         if (entity instanceof ServerPlayerEntity player) {
             player.teleport(world, getX(), getY(), getZ(), player.prevYaw, player.prevPitch);
-            player.onLanding();
+            if (isOnLanding) player.onLanding();
             return true;
         }
 
@@ -88,17 +93,17 @@ public record Location(RegistryKey<World> dimension, Vec3d pos) {
         }
 
         entity1.teleport(getX(), getY(), getZ());
-        entity1.onLanding();
+        if (isOnLanding) entity1.onLanding();
         return true;
     }
 
     @Nullable
-    public Location teleportToNearbySafely(int offset, @NotNull LivingEntity entity, int times) {
+    public Location teleportToNearbySafely(int offset, @NotNull LivingEntity entity, boolean isOnLanding, int times) {
         MinecraftServer server = entity.getServer();
         if (server == null) return null;
 
         Location nearby = getNearbySafeLocation(offset, server, times);
-        return nearby.teleport(entity) ? nearby : null;
+        return nearby.teleport(entity, isOnLanding) ? nearby : null;
     }
 
     public Location getNearby(int offset) {
@@ -120,7 +125,7 @@ public record Location(RegistryKey<World> dimension, Vec3d pos) {
      * @param offset 偏移量
      * @param server 服务器实例
      * @param times  尝试寻找次数 (-1 不限制)
-     * @return 安全的地点, 如果超过 times, 则返回本身
+     * @return 安全的地点, 如果超过 {@code times}, 则返回本身
      */
     @NotNull
     public Location getNearbySafeLocation(int offset, @NotNull MinecraftServer server, int times) {

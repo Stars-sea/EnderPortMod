@@ -2,6 +2,7 @@ package com.github.stars_sea.enderport.client;
 
 import com.github.stars_sea.enderport.item.EnderPortItems;
 import com.github.stars_sea.enderport.item.EnderScroll;
+import com.github.stars_sea.enderport.network.client.listener.EnderPortClientListeners;
 import com.github.stars_sea.enderport.util.ItemHelper;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -28,5 +29,7 @@ public class EnderPortClientMod implements ClientModInitializer {
                 new Identifier("recorded"),
                 (stack, world, entity, seed) -> EnderScroll.hasRecorded(stack) ? 1F : 0F
         );
+
+        EnderPortClientListeners.register();
     }
 }

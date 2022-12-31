@@ -1,7 +1,6 @@
 package com.github.stars_sea.enderport.network.server.listener;
 
 import com.github.stars_sea.enderport.item.EnderPortItems;
-import com.github.stars_sea.enderport.util.PosNbtHelper;
 import com.github.stars_sea.enderport.world.Location;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -21,10 +20,10 @@ public class RenameEnderScrollChannelHandler implements ServerPlayNetworking.Pla
             PacketSender responseSender
     ) {
         buf.retain();
-        String   name     = buf.readString();
-        Location location = PosNbtHelper.getLocation(buf.readNbt());
+        String  name      = buf.readString();
+        boolean isChanged = buf.readBoolean();
         buf.release();
 
-        EnderPortItems.ENDER_SCROLL.recordPos(player, location, name);
+        EnderPortItems.ENDER_SCROLL.recordPos(player, new Location(player), isChanged ? name : null);
     }
 }
