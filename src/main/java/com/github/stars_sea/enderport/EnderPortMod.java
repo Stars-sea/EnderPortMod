@@ -2,6 +2,7 @@ package com.github.stars_sea.enderport;
 
 import com.github.stars_sea.enderport.item.EnderPortItems;
 import com.github.stars_sea.enderport.loot.EnderPortLootTableManager;
+import com.github.stars_sea.enderport.network.server.listener.EnderPortServerListeners;
 import com.github.stars_sea.enderport.recipe.EnderPortRecipeSerializers;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.util.Identifier;
@@ -16,6 +17,7 @@ public class EnderPortMod implements ModInitializer {
 		EnderPortItems.registerAll();
 		EnderPortRecipeSerializers.registerAll();
 		EnderPortLootTableManager.register();
+		EnderPortServerListeners.register();
 	}
 
 	@NotNull @Contract("_ -> new")

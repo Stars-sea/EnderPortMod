@@ -29,6 +29,10 @@ public record Location(RegistryKey<World> dimension, Vec3d pos) {
         this(world.getRegistryKey(), pos);
     }
 
+    public Location(@NotNull GlobalPos globalPos) {
+        this(globalPos.getDimension(), globalPos.getPos());
+    }
+
     @NotNull
     public String getDimensionName() {
         return dimension.getValue().toString();
@@ -72,53 +76,69 @@ public record Location(RegistryKey<World> dimension, Vec3d pos) {
 
         if (entity instanceof ServerPlayerEntity player) {
             player.teleport(world, getX(), getY(), getZ(), player.prevYaw, player.prevPitch);
+            player.onLanding();
             return true;
         }
 
         LivingEntity entity1 = entity;
-        if (entity.world.getRegistryKey() != dimension) {
-            if (entity.moveToWorld(world) instanceof LivingEntity living)
-                entity1 = living;
+        if (isSameWorld(entity1.world)) {
+            if (entity.moveToWorld(world) instanceof LivingEntity entityInOtherWorld)
+                entity1 = entityInOtherWorld;
             else return false;
         }
 
         entity1.teleport(getX(), getY(), getZ());
+        entity1.onLanding();
         return true;
     }
 
     @Nullable
-    public Location teleportToNearbySafely(int offset, @NotNull LivingEntity entity) {
+    public Location teleportToNearbySafely(int offset, @NotNull LivingEntity entity, int times) {
         MinecraftServer server = entity.getServer();
         if (server == null) return null;
 
-        Location nearby = getNearbySafeLocation(offset, server);
-        if (nearby != null && nearby.teleport(entity))
-            return nearby;
-
-        return null;
+        Location nearby = getNearbySafeLocation(offset, server, times);
+        return nearby.teleport(entity) ? nearby : null;
     }
 
     public Location getNearby(int offset) {
         Random random = new Random();
         double x = random.nextInt() % offset;
-        double y = random.nextInt() % offset;
         double z = random.nextInt() % offset;
 
-        return add(x, Math.abs(y), z);
+        return add(x, Math.abs(offset), z);
     }
 
-    @Nullable
-    public Location getNearbySafeLocation(int offset, @NotNull MinecraftServer server) {
-        BlockPos.Mutable mutable = getNearby(offset).mutable();
+    private boolean isSafe(@NotNull BlockPos.Mutable mutable, @NotNull World world) {
+        return world.getBlockState(mutable).getMaterial().blocksMovement() &&
+                world.getBlockState(mutable.add(0, 1, 0)).isAir() &&
+                world.getBlockState(mutable.add(0, 2, 0)).isAir();
+    }
 
+    /**
+     * 寻找周围安全的地点
+     * @param offset 偏移量
+     * @param server 服务器实例
+     * @param times  尝试寻找次数 (-1 不限制)
+     * @return 安全的地点, 如果超过 times, 则返回本身
+     */
+    @NotNull
+    public Location getNearbySafeLocation(int offset, @NotNull MinecraftServer server, int times) {
         World world = server.getWorld(dimension);
-        if (world == null) return null;
+        if (world == null) return this;
 
-        while(mutable.getY() > world.getBottomY() && !world.getBlockState(mutable).getMaterial().blocksMovement())
+        BlockPos.Mutable mutable = getNearby(offset).mutable();
+        int lowest = Math.max(world.getBottomY(), (int) getY() - offset);
+        int flag   = 0;
+        while (!isSafe(mutable, world) && (times == -1 || flag < times)) {
+            if (mutable.getY() < lowest) {
+                mutable = getNearby(offset).mutable();
+                flag++;
+                continue;
+            }
             mutable.move(Direction.DOWN);
-        mutable.move(Direction.UP);
-
-        return new Location(dimension, mutable);
+        }
+        return flag <= times ? new Location(dimension, mutable.move(Direction.UP)) : this;
     }
 
     public Location add(double x, double y, double z) {
@@ -143,7 +163,7 @@ public record Location(RegistryKey<World> dimension, Vec3d pos) {
     }
 
     public boolean isSameWorld(@Nullable World world) {
-        return world != null && dimension.getValue().equals(world.getRegistryKey().getValue());
+        return isSameWorld(dimension, world);
     }
 
     @NotNull @Contract(" -> new")

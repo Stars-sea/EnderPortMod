@@ -26,11 +26,34 @@
       },
       "model": "enderport:item/ender_scroll_writing_2"
     },
+
     {
       "predicate": {
         "recorded": 1
       },
       "model": "enderport:item/ender_scroll_recorded"
+    },
+
+    {
+      "predicate": {
+        "recorded": 1,
+        "progress": 0.01
+      },
+      "model": "enderport:item/ender_scroll_reading_0"
+    },
+    {
+      "predicate": {
+        "recorded": 1,
+        "progress": 0.58
+      },
+      "model": "enderport:item/ender_scroll_reading_1"
+    },
+    {
+      "predicate": {
+        "recorded": 1,
+        "progress": 1
+      },
+      "model": "enderport:item/ender_scroll_reading_2"
     }
   ]
 }

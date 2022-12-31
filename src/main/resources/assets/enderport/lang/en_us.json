@@ -5,9 +5,13 @@
   "item.enderport.ender_amethyst_intact": "Intact Ender Amethyst",
 
   "tooltip.enderport.ender_scroll.blank": "Blank",
-  "tooltip.enderport.ender_totem.death_pos": "Last died at:",
+  "tooltip.enderport.ender_scroll.distance": "Distance: %d",
   "tip.enderport.tp_fail": "Failed to teleport to %s",
   "tip.enderport.tp_succeed": "Teleport to %s successfully",
+  "tip.enderport.clear_location": "Location cleared",
   "tip.enderport.found_landmark": "Found a landmark %d blocks away from you",
-  "tip.enderport.not_fount_landmark": "Can't find any landmark within %d blocks"
+  "tip.enderport.not_fount_landmark": "Can't find any landmark within %d blocks",
+  "tip.enderport.tp_last_death_pos": "Teleport to last death position",
+
+  "gui.screen.name_ender_scroll.title": "Naming Ender Scroll"
 }

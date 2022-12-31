@@ -20,10 +20,12 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class EnderAmethyst extends Item {
     public final int searchDistance;
@@ -52,8 +54,22 @@ public class EnderAmethyst extends Item {
             user.getItemCooldownManager().set(this, 30);
             user.incrementStat(Stats.USED.getOrCreateStat(this));
 
+            if (user.isSneaking()) {
+                GlobalPos lastDeathPos = user.getLastDeathPos().orElse(null);
+                if (lastDeathPos != null) {
+                    prepareToTeleportAround(
+                            new Location(lastDeathPos), user,
+                            d -> Text.translatable("tip.enderport.tp_last_death_pos").formatted(Formatting.GREEN)
+                    );
+                    return TypedActionResult.consume(stack);
+                }
+            }
+
             LandmarkPOIType.getNearestLandmark(serverWorld, user.getBlockPos(), searchDistance).ifPresentOrElse(
-                    landmark -> prepareToTeleportAround(new Location(world, landmark), user),
+                    landmark -> prepareToTeleportAround(
+                            new Location(world, landmark), user,
+                            d -> Text.translatable("tip.enderport.found_landmark", d).formatted(Formatting.GREEN)
+                    ),
                     () -> {
                         MutableText text = Text.translatable("tip.enderport.not_fount_landmark", searchDistance);
                         user.sendMessage(text.formatted(Formatting.RED), true);
@@ -66,7 +82,7 @@ public class EnderAmethyst extends Item {
         return TypedActionResult.consume(stack);
     }
 
-    protected void prepareToTeleportAround(@NotNull Location location, @NotNull PlayerEntity player) {
+    protected void prepareToTeleportAround(@NotNull Location location, @NotNull PlayerEntity player, Function<Long, Text> tip) {
         MinecraftServer server = player.getServer();
         if (server == null) return;
 
@@ -76,12 +92,9 @@ public class EnderAmethyst extends Item {
         var entities = sources.subList(0, Math.min(sources.size(), maxTpCount));
 
         double distance = pos.pos().distanceTo(location.pos());
-
         for (LivingEntity entity : entities) {
-            if (entity instanceof PlayerEntity playerEntity) {
-                MutableText text = Text.translatable("tip.enderport.found_landmark", Math.round(distance));
-                playerEntity.sendMessage(text.formatted(Formatting.GREEN), true);
-            }
+            if (entity instanceof PlayerEntity playerEntity)
+                playerEntity.sendMessage(tip.apply(Math.round(distance)), true);
 
             entity.addStatusEffect(new StatusEffectInstance(
                     StatusEffects.GLOWING, 40, 0, false, false
@@ -89,7 +102,7 @@ public class EnderAmethyst extends Item {
         }
 
         for (LivingEntity entity : entities) {
-            Location nearby = location.teleportToNearbySafely(3, entity);
+            Location nearby = location.teleportToNearbySafely(3, entity, 10);
             if (nearby != null) entity.refreshPositionAfterTeleport(nearby.pos());
         }
     }

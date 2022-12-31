@@ -5,9 +5,13 @@
   "item.enderport.ender_amethyst_intact": "末影紫晶 · 全",
 
   "tooltip.enderport.ender_scroll.blank": "空白",
-  "tooltip.enderport.ender_totem.death_pos": "上次死亡:",
+  "tooltip.enderport.ender_scroll.distance": "距离: %d",
   "tip.enderport.tp_fail": "传送至 %s 失败",
   "tip.enderport.tp_succeed": "传送至 %s 成功",
+  "tip.enderport.clear_location": "位置信息已清除",
   "tip.enderport.found_landmark": "找到距离你 %d 格的地标",
-  "tip.enderport.not_fount_landmark": "在 %d 格内无法找到地标"
+  "tip.enderport.not_fount_landmark": "在 %d 格内无法找到地标",
+  "tip.enderport.tp_last_death_pos": "传送到上次死亡地点",
+
+  "gui.screen.name_ender_scroll.title": "命名末影卷轴"
 }
